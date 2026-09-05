@@ -20,7 +20,7 @@ function stopKeyboard() {
 function formatStatus() {
   const state = scheduler.getStatus();
   if (!state.times || state.times.length === 0) {
-    return 'No schedule set yet. Send /settimes 5:00,10:35,15:50 to create one.';
+    return 'No schedule set yet. Send /settimes 05:00,10:35,15:50 to create one.';
   }
   const status = state.enabled ? 'ACTIVE' : 'STOPPED';
   return (
@@ -41,7 +41,9 @@ bot.onText(/^\/start/, (msg) => {
       '/stop - pause the schedule\n' +
       '/resume - resume the last saved schedule\n' +
       '/clear - delete the saved schedule\n' +
-      '/pingnow - send one ping immediately (for testing)'
+      '/pingnow - send one ping immediately (for testing)\n\n' +
+      'Time format: two digits for hour, two digits for minute, e.g. 05:00 (not 5:00). ' +
+      'Example: /settimes 05:00,10:35,15:50,20:25,01:40'
   );
 });
 
@@ -49,7 +51,10 @@ bot.onText(/^\/settimes(?:\s+(.+))?/, (msg, match) => {
   if (!isAllowed(msg)) return;
   const input = match[1];
   if (!input) {
-    bot.sendMessage(msg.chat.id, 'Usage: /settimes 5:00,10:35,15:50,20:25,1:40');
+    bot.sendMessage(
+      msg.chat.id,
+      'Usage: /settimes 05:00,10:35,15:50,20:25,01:40\n\n' + scheduler.FORMAT_HINT
+    );
     return;
   }
   try {
