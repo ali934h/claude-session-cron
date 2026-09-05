@@ -6,21 +6,24 @@ const { runPing } = require('./pinger');
 let tasks = [];
 let botRef = null;
 
+const TIME_RE = /^([0-1][0-9]|2[0-3]):([0-5][0-9])$/;
+const FORMAT_HINT =
+  'Each time must be exactly HH:MM with two digits for the hour and two for the minute ' +
+  '(00-23 and 00-59), e.g. 05:00 - not 5:00. ' +
+  'If any single time in the list is invalid, the whole schedule is rejected.';
+
 function parseTimes(input) {
-  // Accepts "5:00,10:35,15:50,20:25,1:40" -> ["05:00", "10:35", "15:50", "20:25", "01:40"]
+  // Strict format: "05:00,10:35,15:50,20:25,01:40" -> ["05:00", "10:35", "15:50", "20:25", "01:40"]
   const parts = input.split(',').map((p) => p.trim()).filter(Boolean);
+  if (parts.length === 0) {
+    throw new Error(`No times found. ${FORMAT_HINT}`);
+  }
   const times = [];
   for (const part of parts) {
-    const match = part.match(/^(\d{1,2}):(\d{2})$/);
-    if (!match) {
-      throw new Error(`Invalid time: "${part}". Use HH:MM (e.g. 5:00 or 23:45).`);
+    if (!TIME_RE.test(part)) {
+      throw new Error(`Invalid time: "${part}". ${FORMAT_HINT}`);
     }
-    const hour = Number(match[1]);
-    const minute = Number(match[2]);
-    if (hour < 0 || hour > 23 || minute < 0 || minute > 59) {
-      throw new Error(`Invalid time: "${part}". Hour must be 0-23 and minute 0-59.`);
-    }
-    times.push(`${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`);
+    times.push(part);
   }
   return [...new Set(times)].sort();
 }
@@ -106,4 +109,4 @@ function getStatus() {
   return loadState();
 }
 
-module.exports = { init, setTimes, stop, resume, clear, getStatus, parseTimes };
+module.exports = { init, setTimes, stop, resume, clear, getStatus, parseTimes, FORMAT_HINT };
