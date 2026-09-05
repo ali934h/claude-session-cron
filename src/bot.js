@@ -6,7 +6,7 @@ const { runPing, PING_PROMPT } = require('./pinger');
 const bot = new TelegramBot(config.botToken, { polling: true });
 
 function isAllowed(msg) {
-  return msg.from && msg.from.id === config.allowedUserId;
+  return msg.from && config.allowedUserIds.includes(msg.from.id);
 }
 
 function stopKeyboard() {
@@ -102,7 +102,7 @@ bot.onText(/^\/pingnow/, async (msg) => {
 });
 
 bot.on('callback_query', (query) => {
-  if (!query.from || query.from.id !== config.allowedUserId) return;
+  if (!query.from || !config.allowedUserIds.includes(query.from.id)) return;
   if (query.data === 'stop_schedule') {
     scheduler.stop();
     bot.answerCallbackQuery(query.id, { text: 'Schedule stopped.' });
