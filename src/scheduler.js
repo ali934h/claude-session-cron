@@ -32,6 +32,13 @@ function stopAllTasks() {
   tasks = [];
 }
 
+function notifyAll(text) {
+  if (!botRef) return;
+  for (const uid of config.allowedUserIds) {
+    botRef.sendMessage(uid, text).catch(() => {});
+  }
+}
+
 function scheduleTasks(times) {
   stopAllTasks();
   for (const time of times) {
@@ -41,11 +48,11 @@ function scheduleTasks(times) {
       expression,
       async () => {
         const result = await runPing();
-        if (botRef && config.notifyOnPing) {
+        if (config.notifyOnPing) {
           const text = result.ok
             ? `Ping sent at ${time} (${config.scheduleTimezone}). Model: ${config.claudeModel}.`
             : `Ping failed at ${time} (${config.scheduleTimezone}): ${result.error}`;
-          botRef.sendMessage(config.allowedUserId, text).catch(() => {});
+          notifyAll(text);
         }
       },
       { scheduled: true, timezone: config.scheduleTimezone }
