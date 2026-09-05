@@ -11,10 +11,15 @@ function isAllowed(msg) {
   return msg.from && config.allowedUserIds.includes(msg.from.id);
 }
 
-function stopKeyboard() {
+function confirmStopKeyboard() {
   return {
     reply_markup: {
-      inline_keyboard: [[{ text: 'Stop schedule', callback_data: 'stop_schedule' }]],
+      inline_keyboard: [
+        [
+          { text: 'Yes, stop it', callback_data: 'confirm_stop' },
+          { text: 'Cancel', callback_data: 'cancel_stop' },
+        ],
+      ],
     },
   };
 }
@@ -40,7 +45,7 @@ bot.onText(/^\/start/, (msg) => {
       'Commands:\n' +
       '/settimes HH:MM,HH:MM,... - set ping times (Tehran time)\n' +
       '/status - show current schedule\n' +
-      '/stop - pause the schedule\n' +
+      '/stop - pause the schedule (asks for confirmation)\n' +
       '/resume - resume the last saved schedule\n' +
       '/clear - delete the saved schedule\n' +
       '/pingnow - send one ping immediately (for testing)\n\n' +
@@ -67,7 +72,7 @@ bot.onText(/^\/settimes(?:\s+(.+))?/, (msg, match) => {
     bot.sendMessage(
       msg.chat.id,
       `Schedule saved and started: \`${times.join(', ')}\` (${config.scheduleTimezone}).`,
-      { parse_mode: 'Markdown', ...stopKeyboard() }
+      { parse_mode: 'Markdown' }
     );
   } catch (err) {
     bot.sendMessage(msg.chat.id, `Error: ${err.message}`);
@@ -76,20 +81,28 @@ bot.onText(/^\/settimes(?:\s+(.+))?/, (msg, match) => {
 
 bot.onText(/^\/status/, (msg) => {
   if (!isAllowed(msg)) return;
-  bot.sendMessage(msg.chat.id, formatStatus(), { parse_mode: 'Markdown', ...stopKeyboard() });
+  bot.sendMessage(msg.chat.id, formatStatus(), { parse_mode: 'Markdown' });
 });
 
 bot.onText(/^\/stop/, (msg) => {
   if (!isAllowed(msg)) return;
-  scheduler.stop();
-  bot.sendMessage(msg.chat.id, 'Schedule stopped. Saved times are kept, use /resume to restart.');
+  const state = scheduler.getStatus();
+  if (!state.enabled) {
+    bot.sendMessage(msg.chat.id, 'The schedule is already stopped.');
+    return;
+  }
+  bot.sendMessage(
+    msg.chat.id,
+    'Are you sure you want to stop the schedule? Saved times will be kept, you can /resume later.',
+    confirmStopKeyboard()
+  );
 });
 
 bot.onText(/^\/resume/, (msg) => {
   if (!isAllowed(msg)) return;
   try {
     scheduler.resume();
-    bot.sendMessage(msg.chat.id, 'Schedule resumed.', stopKeyboard());
+    bot.sendMessage(msg.chat.id, 'Schedule resumed.');
   } catch (err) {
     bot.sendMessage(msg.chat.id, `Error: ${err.message}`);
   }
@@ -113,10 +126,24 @@ bot.onText(/^\/pingnow/, async (msg) => {
 
 bot.on('callback_query', (query) => {
   if (!query.from || !config.allowedUserIds.includes(query.from.id)) return;
-  if (query.data === 'stop_schedule') {
+
+  if (query.data === 'confirm_stop') {
     scheduler.stop();
     bot.answerCallbackQuery(query.id, { text: 'Schedule stopped.' });
-    bot.sendMessage(query.message.chat.id, 'Schedule stopped. Saved times are kept, use /resume to restart.');
+    bot.editMessageText('Schedule stopped. Saved times are kept, use /resume to restart.', {
+      chat_id: query.message.chat.id,
+      message_id: query.message.message_id,
+    });
+    return;
+  }
+
+  if (query.data === 'cancel_stop') {
+    bot.answerCallbackQuery(query.id, { text: 'Cancelled.' });
+    bot.editMessageText('Cancelled. The schedule is still active.', {
+      chat_id: query.message.chat.id,
+      message_id: query.message.message_id,
+    });
+    return;
   }
 });
 
