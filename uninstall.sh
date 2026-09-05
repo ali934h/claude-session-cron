@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-INSTALL_DIR="/root/claude-session-cron"
+INSTALL_DIR="$HOME/claude-session-cron"
 
 echo "==> Stopping and removing PM2 process..."
 pm2 stop claude-session-cron 2>/dev/null || true
