@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-INSTALL_DIR="/root/claude-session-cron"
+INSTALL_DIR="$HOME/claude-session-cron"
 cd "$INSTALL_DIR"
 
 echo "==> Pulling latest code..."
