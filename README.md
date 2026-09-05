@@ -19,14 +19,14 @@ Built for personal use on a single server, in the same style as [tg-hub](https:/
 
 ## Prerequisites
 
-- Ubuntu 22.04 / 24.04 server with root access.
+- Ubuntu 22.04 / 24.04 server (works as root or as a regular user with sudo).
 - [Claude Code](https://docs.claude.com/en/docs/claude-code/overview) already installed **and logged in** on the server (this bot just calls the `claude` CLI you already have).
 - A Telegram bot token from [@BotFather](https://t.me/BotFather).
 - Your numeric Telegram user id (ask [@userinfobot](https://t.me/userinfobot)).
 
 ## Install
 
-One-line install (run as root):
+One-line install:
 
 ```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/ali934h/claude-session-cron/main/install.sh)
@@ -34,10 +34,11 @@ bash <(curl -fsSL https://raw.githubusercontent.com/ali934h/claude-session-cron/
 
 The installer will:
 
-- Install Node.js 20 and PM2 if they're missing.
-- Clone this repo to `/root/claude-session-cron`.
+- Detect your `claude` CLI path (asks you to install/login first if missing).
+- Install Node.js 20 and PM2 if they're missing (uses `sudo` automatically if you're not root).
+- Clone this repo to `~/claude-session-cron`.
 - Prompt for `BOT_TOKEN`, `ALLOWED_USER_ID`, model, and effort level.
-- Start the bot with PM2 and enable auto-start on boot.
+- Start the bot with PM2 and print the command to enable auto-start on boot.
 
 ## Usage
 
@@ -58,15 +59,15 @@ You can also tap the **Stop schedule** button shown after `/settimes` or `/statu
 ## Daily commands
 
 ```bash
-pm2 logs claude-session-cron        # follow live logs
-pm2 restart claude-session-cron     # restart
-bash /root/claude-session-cron/update.sh      # pull latest code and restart
-bash /root/claude-session-cron/uninstall.sh   # remove everything
+pm2 logs claude-session-cron            # follow live logs
+pm2 restart claude-session-cron         # restart
+bash ~/claude-session-cron/update.sh    # pull latest code and restart
+bash ~/claude-session-cron/uninstall.sh # remove everything
 ```
 
 ## Configuration
 
-All configuration lives in `/root/claude-session-cron/.env` (see `.env.example`):
+All configuration lives in `~/claude-session-cron/.env` (see `.env.example`):
 
 ```
 BOT_TOKEN=
@@ -77,6 +78,8 @@ CLAUDE_EFFORT=low
 NOTIFY_ON_PING=true
 SCHEDULE_TIMEZONE=Asia/Tehran
 ```
+
+`CLAUDE_BIN` should be the full path to the `claude` binary if it's not on PM2's PATH (e.g. `~/.local/bin/claude`) - the installer fills this in automatically.
 
 After editing, restart with `pm2 restart claude-session-cron`.
 
