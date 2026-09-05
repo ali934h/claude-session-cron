@@ -2,32 +2,38 @@
 set -euo pipefail
 
 REPO_URL="https://github.com/ali934h/claude-session-cron.git"
-INSTALL_DIR="/root/claude-session-cron"
+INSTALL_DIR="$HOME/claude-session-cron"
 
+SUDO=""
 if [[ $EUID -ne 0 ]]; then
-  echo "Please run this script as root (e.g. with sudo)." >&2
-  exit 1
+  SUDO="sudo"
 fi
 
 echo "==> Checking for Claude Code CLI..."
-if ! command -v claude >/dev/null 2>&1; then
-  echo "WARNING: 'claude' command not found in PATH."
+CLAUDE_BIN_PATH="$(command -v claude || true)"
+if [[ -z "$CLAUDE_BIN_PATH" && -x "$HOME/.local/bin/claude" ]]; then
+  CLAUDE_BIN_PATH="$HOME/.local/bin/claude"
+fi
+if [[ -z "$CLAUDE_BIN_PATH" ]]; then
+  echo "WARNING: 'claude' command not found."
   echo "Install and log in to Claude Code first: https://docs.claude.com/en/docs/claude-code/overview"
   read -rp "Continue installing the bot anyway? [y/N] " cont
   if [[ ! "$cont" =~ ^[Yy]$ ]]; then
     exit 1
   fi
+  CLAUDE_BIN_PATH="claude"
 fi
+echo "Using claude binary: $CLAUDE_BIN_PATH"
 
 echo "==> Installing Node.js 20 (if missing)..."
 if ! command -v node >/dev/null 2>&1 || [[ $(node -v | sed 's/v//;s/\..*//') -lt 18 ]]; then
-  curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-  apt-get install -y nodejs
+  curl -fsSL https://deb.nodesource.com/setup_20.x | $SUDO -E bash -
+  $SUDO apt-get install -y nodejs
 fi
 
 echo "==> Installing PM2 (if missing)..."
 if ! command -v pm2 >/dev/null 2>&1; then
-  npm install -g pm2
+  $SUDO npm install -g pm2
 fi
 
 echo "==> Cloning repository..."
@@ -55,7 +61,7 @@ CLAUDE_EFFORT=${CLAUDE_EFFORT:-low}
 cat > .env <<EOF
 BOT_TOKEN=${BOT_TOKEN}
 ALLOWED_USER_ID=${ALLOWED_USER_ID}
-CLAUDE_BIN=claude
+CLAUDE_BIN=${CLAUDE_BIN_PATH}
 CLAUDE_MODEL=${CLAUDE_MODEL}
 CLAUDE_EFFORT=${CLAUDE_EFFORT}
 NOTIFY_ON_PING=true
@@ -66,7 +72,10 @@ chmod 600 .env
 echo "==> Starting bot with PM2..."
 pm2 start ecosystem.config.js
 pm2 save
-pm2 startup systemd -u root --hp /root | tail -n 1 | bash || true
+
+echo ""
+echo "==> To enable auto-start on boot, run the command PM2 prints below (copy/paste it):"
+pm2 startup || true
 
 echo ""
 echo "Done. Open a chat with your bot and send /start."
