@@ -9,9 +9,15 @@ function required(name) {
   return value;
 }
 
+const allowedUserIds = required('ALLOWED_USER_ID')
+  .split(',')
+  .map((id) => id.trim())
+  .filter(Boolean)
+  .map(Number);
+
 module.exports = {
   botToken: required('BOT_TOKEN'),
-  allowedUserId: Number(required('ALLOWED_USER_ID')),
+  allowedUserIds,
   claudeBin: process.env.CLAUDE_BIN || 'claude',
   claudeModel: process.env.CLAUDE_MODEL || 'claude-haiku-4-5-20251001',
   claudeEffort: process.env.CLAUDE_EFFORT || 'low',
