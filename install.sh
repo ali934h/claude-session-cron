@@ -53,8 +53,8 @@ echo ""
 echo "==> Telegram bot configuration"
 read -rp "Enter your BOT_TOKEN (from @BotFather): " BOT_TOKEN
 read -rp "Enter your numeric Telegram user id (from @userinfobot): " ALLOWED_USER_ID
-read -rp "Claude model to use for pings [claude-haiku-4-5-20251001]: " CLAUDE_MODEL
-CLAUDE_MODEL=${CLAUDE_MODEL:-claude-haiku-4-5-20251001}
+read -rp "Claude model to use for pings [haiku]: " CLAUDE_MODEL
+CLAUDE_MODEL=${CLAUDE_MODEL:-haiku}
 read -rp "Effort level for pings [low]: " CLAUDE_EFFORT
 CLAUDE_EFFORT=${CLAUDE_EFFORT:-low}
 

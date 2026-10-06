@@ -10,7 +10,7 @@ Built for personal use on a single server, in the same style as [tg-hub](https:/
 - Strict `HH:MM` format is enforced: two digits for the hour and two for the minute (e.g. `05:00`, not `5:00`). If any single time in the message is invalid, the **entire schedule is rejected** and the bot tells you what to fix.
 - A cron job fires at each of those times and runs:
   ```
-  claude -p "Capital of France? One word." --model claude-haiku-4-5-20251001 --effort low
+  claude -p "Capital of France? One word." --model haiku --effort low
   ```
   using the cheapest available model and the lowest effort level, so each ping costs as little as possible.
 - One-tap **Stop** button (and `/stop` command) to pause all scheduled pings without losing your saved schedule.
@@ -76,11 +76,13 @@ All configuration lives in `~/claude-session-cron/.env` (see `.env.example`):
 BOT_TOKEN=
 ALLOWED_USER_ID=
 CLAUDE_BIN=claude
-CLAUDE_MODEL=claude-haiku-4-5-20251001
+CLAUDE_MODEL=haiku
 CLAUDE_EFFORT=low
 NOTIFY_ON_PING=true
 SCHEDULE_TIMEZONE=Asia/Tehran
 ```
+
+`CLAUDE_MODEL` accepts a model alias (`haiku`, `sonnet`, `opus`) or a full model ID. The default `haiku` always resolves to the current Haiku model, so the bot keeps working when older model versions are retired.
 
 `ALLOWED_USER_ID` accepts a comma-separated list, e.g. `111111,222222,333333`.
 

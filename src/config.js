@@ -19,7 +19,7 @@ module.exports = {
   botToken: required('BOT_TOKEN'),
   allowedUserIds,
   claudeBin: process.env.CLAUDE_BIN || 'claude',
-  claudeModel: process.env.CLAUDE_MODEL || 'claude-haiku-4-5-20251001',
+  claudeModel: process.env.CLAUDE_MODEL || 'haiku',
   claudeEffort: process.env.CLAUDE_EFFORT || 'low',
   notifyOnPing: (process.env.NOTIFY_ON_PING || 'true').toLowerCase() === 'true',
   scheduleTimezone: process.env.SCHEDULE_TIMEZONE || 'Asia/Tehran',
